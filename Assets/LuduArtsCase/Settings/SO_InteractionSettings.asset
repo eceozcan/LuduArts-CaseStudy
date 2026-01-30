@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b2837349a52e0a54fbafe2236fbafbd8, type: 3}
+  m_Name: SO_InteractionSettings
+  m_EditorClassIdentifier: Assembly-CSharp::LuduArtsCase.Core.InteractionSettings
+  m_InteractionRange: 5
+  m_InteractableLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_InteractKey: 102
