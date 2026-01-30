@@ -1,0 +1,30 @@
+# Unity folders
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Uu]ser[Ss]ettings/
+
+# IDE / OS
+.vs/
+.vscode/
+.DS_Store
+
+# Unity-generated solution/project files (optional but recommended)
+*.csproj
+*.sln
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+
+# Unity Plastic SCM/local configs
+.plastic/
+ignore.conf
