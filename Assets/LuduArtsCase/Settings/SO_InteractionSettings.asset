@@ -16,4 +16,4 @@ MonoBehaviour:
   m_InteractableLayers:
     serializedVersion: 2
     m_Bits: 4294967295
-  m_InteractKey: 102
+  m_InteractKey: 101

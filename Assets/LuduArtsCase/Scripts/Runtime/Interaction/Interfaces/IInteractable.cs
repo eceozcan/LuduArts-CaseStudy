@@ -1,4 +1,5 @@
 using UnityEngine;
+using LuduArtsCase.Interaction.Core;
 
 namespace LuduArtsCase.Interaction.Interfaces
 {
@@ -6,6 +7,9 @@ namespace LuduArtsCase.Interaction.Interfaces
     {
         string Prompt { get; }
         Transform Transform { get; }
+
+        InteractionType Type { get; }
+        float HoldDuration { get; }
 
         bool CanInteract(IInteractor interactor);
         void Interact(IInteractor interactor);
