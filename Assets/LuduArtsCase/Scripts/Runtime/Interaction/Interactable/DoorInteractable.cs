@@ -5,27 +5,35 @@ using LuduArtsCase.Interaction.Interfaces;
 
 namespace LuduArtsCase.Interaction.Interactable
 {
-    public sealed class DoorInteractable : MonoBehaviour, IInteractable
+    public sealed class DoorInteractable : MonoBehaviour, IInteractable, IToggleTarget
     {
         #region Fields
 
-        [Header("Door")]
-        [SerializeField] private Transform m_DoorPivot;
-        [SerializeField] private float m_OpenAngle = 90f;
-        [SerializeField] private float m_OpenCloseSpeed = 6f;
-
-        [Header("Lock")]
+        [Header("Door State")]
         [SerializeField] private bool m_IsLocked = true;
+        [SerializeField] private bool m_IsOpen;
+
+        [Header("Prompts")]
+        [SerializeField] private string m_LockedPrompt = "Locked (Key Required)";
+        [SerializeField] private string m_OpenPrompt = "Close Door";
+        [SerializeField] private string m_ClosedPrompt = "Open Door";
+
+        [Header("Key Requirement")]
         [SerializeField] private SO_KeyItem m_RequiredKey;
 
-        [Header("Prompt")]
-        [SerializeField] private string m_OpenPrompt = "Open door";
-        [SerializeField] private string m_ClosePrompt = "Close door";
-        [SerializeField] private string m_LockedPrompt = "Door is locked (Key required)";
+        [Header("Visual")]
+        [SerializeField] private Transform m_DoorPivot;
+        [SerializeField] private float m_OpenYaw = 90f;
+        [SerializeField] private float m_CloseYaw;
 
-        private bool m_IsOpen;
-        private Quaternion m_ClosedRotation;
-        private Quaternion m_OpenRotation;
+        #endregion
+
+        #region Unity Methods
+
+        private void Start()
+        {
+            ApplyVisualState();
+        }
 
         #endregion
 
@@ -40,7 +48,7 @@ namespace LuduArtsCase.Interaction.Interactable
                     return m_LockedPrompt;
                 }
 
-                return m_IsOpen ? m_ClosePrompt : m_OpenPrompt;
+                return m_IsOpen ? m_OpenPrompt : m_ClosedPrompt;
             }
         }
 
@@ -50,24 +58,18 @@ namespace LuduArtsCase.Interaction.Interactable
 
         public bool CanInteract(IInteractor interactor)
         {
-            if (interactor == null)
-            {
-                return false;
-            }
-
             if (!m_IsLocked)
             {
                 return true;
             }
 
-            // Locked => require key
             if (m_RequiredKey == null)
             {
+                Debug.LogWarning($"{nameof(DoorInteractable)}: Required key is not assigned.", this);
                 return false;
             }
 
-            PlayerInventory inventory = interactor.Owner.GetComponentInParent<PlayerInventory>();
-            if (inventory == null)
+            if (!TryGetInventory(interactor, out PlayerInventory inventory))
             {
                 return false;
             }
@@ -79,37 +81,78 @@ namespace LuduArtsCase.Interaction.Interactable
         {
             if (m_IsLocked)
             {
-                // If we are locked but CanInteract returned true => key exists, unlock
+                if (m_RequiredKey == null)
+                {
+                    Debug.LogWarning($"{nameof(DoorInteractable)}: Required key is not assigned.", this);
+                    return;
+                }
+
+                if (!TryGetInventory(interactor, out PlayerInventory inventory))
+                {
+                    Debug.LogWarning("PlayerInventory not found on interactor owner.", this);
+                    return;
+                }
+
+                if (!inventory.HasKey(m_RequiredKey))
+                {
+                    Debug.Log("Door is locked. Key required.", this);
+                    return;
+                }
+
+                // Unlock door
                 m_IsLocked = false;
             }
 
-            m_IsOpen = !m_IsOpen;
+            Toggle();
         }
 
         #endregion
 
-        #region Unity Methods
+        #region IToggleTarget
 
-        private void Awake()
+        /// <summary>
+        /// Toggles door open/close state. External triggers cannot bypass lock.
+        /// </summary>
+        public void Toggle()
         {
-            if (m_DoorPivot == null)
+            if (m_IsLocked)
             {
-                m_DoorPivot = transform;
+                // External trigger should not bypass lock.
+                return;
             }
 
-            m_ClosedRotation = m_DoorPivot.localRotation;
-            m_OpenRotation = m_ClosedRotation * Quaternion.Euler(0f, m_OpenAngle, 0f);
+            m_IsOpen = !m_IsOpen;
+            ApplyVisualState();
         }
 
-        private void Update()
+        #endregion
+
+        #region Helpers
+
+        private void ApplyVisualState()
         {
             if (m_DoorPivot == null)
             {
                 return;
             }
 
-            Quaternion target = m_IsOpen ? m_OpenRotation : m_ClosedRotation;
-            m_DoorPivot.localRotation = Quaternion.Slerp(m_DoorPivot.localRotation, target, Time.deltaTime * m_OpenCloseSpeed);
+            float yaw = m_IsOpen ? m_OpenYaw : m_CloseYaw;
+
+            Vector3 euler = m_DoorPivot.localEulerAngles;
+            euler.y = yaw;
+            m_DoorPivot.localEulerAngles = euler;
+        }
+
+        private static bool TryGetInventory(IInteractor interactor, out PlayerInventory inventory)
+        {
+            inventory = null;
+
+            if (interactor == null || interactor.Owner == null)
+            {
+                return false;
+            }
+
+            return interactor.Owner.TryGetComponent(out inventory);
         }
 
         #endregion
